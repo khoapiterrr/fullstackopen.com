@@ -1,31 +1,27 @@
 import React, { useState } from 'react';
-import PersonForm from './components/PersonForm';
-import Persons from './components/Persons';
+import Country from './components/Country';
 import axios from 'axios';
 const App = () => {
-  const [persons, setPersons] = useState([]);
-  const [search, setSearch] = useState('');
+  const [countries, setCountries] = useState([]);
+  React.useEffect(() => {}, []);
+  const [data, setData] = useState();
+  const typingTimeout = React.useRef(null);
 
-  React.useEffect(() => {
-    axios
-      .get('http://localhost:3001/persons')
-      .then((response) => {
-        setPersons(response.data);
-      })
-      .catch((error) => {
-        console.log(error);
-      });
-  }, []);
-  const handleSubmit = (newUser) => {
-    const checkExists = persons.find((x) => x.name === newUser.name);
-    if (checkExists) {
-      alert(`${newUser.name} is already added to phonebook`);
-      return;
-    }
-    setPersons(persons.concat(newUser));
-  };
   const handleOnChangeSearch = (e) => {
-    setSearch(e.target.value);
+    if (typingTimeout.current) {
+      clearTimeout(typingTimeout.current);
+    }
+    typingTimeout.current = setTimeout(() => {
+      setData(null);
+      axios
+        .get(`https://restcountries.eu/rest/v2/name/${e.target.value}`)
+        .then((response) => {
+          setCountries(response.data);
+        })
+        .catch((error) => {
+          console.log(error);
+        });
+    }, 300);
   };
   return (
     <div>
@@ -33,10 +29,20 @@ const App = () => {
       <p>
         filter shown with <input type='text' onChange={handleOnChangeSearch} />
       </p>
-      <h3>Add a new</h3>
-      <PersonForm handleSubmit={handleSubmit} />
-      <h2>Numbers</h2>
-      <Persons persons={persons} search={search} />
+
+      {data ? (
+        <Country country={data} />
+      ) : countries?.length > 10 ? (
+        <p>Too many matches, specify another filter</p>
+      ) : countries?.length === 1 ? (
+        <Country country={countries[0]} />
+      ) : (
+        countries.map((item, index) => (
+          <p key={index}>
+            {item.name} <button onClick={() => setData(item)}>Show</button>
+          </p>
+        ))
+      )}
     </div>
   );
 };
