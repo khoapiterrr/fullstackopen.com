@@ -1,50 +1,49 @@
-const Blog = require('../models/blog');
-
+const User = require('../models/user');
+const bcrypt = require('bcryptjs');
 const getAll = async (req, res) => {
-  const docs = await Blog.find({}).populate('user', '-blogs');
+  const docs = await User.find({}).populate('blogs');
   res.status(200).json(docs).end();
 };
 
 const create = async (req, res) => {
-  const { user } = req;
-  req.body.user = user.id;
-  const blog = new Blog(req.body);
-  const result = await blog.save();
+  const user = new User(req.body);
 
-  user.blogs = user.blogs.concat(result.id);
-
-  await user.save();
+  const { password } = user;
+  if (!password || password?.length < 3) {
+    console.log('err hehehehh');
+    throw new Error('Password missing');
+  }
+  // hash password
+  var salt = bcrypt.genSaltSync(10);
+  const pwdHash = await bcrypt.hash(password, salt);
+  user.password = pwdHash;
+  const result = await user.save();
   res.status(201).json(result).end();
 };
 
 const getById = async (req, res) => {
   const { id } = req.params || {};
-  const doc = await Blog.findById(id);
+  const doc = await User.findById(id);
   if (!doc) {
     res.status(404).json('Not found').end();
   }
   res.status(200).json(doc).end();
 };
 const DeleteById = async (req, res) => {
-  const { user } = req;
   const { id } = req.params || {};
-  const doc = await Blog.findById(id);
+  const doc = await User.findByIdAndRemove(id);
   if (!doc) {
     res.status(404).json('Not found').end();
-  }
-  if (doc.user.toString() === user.id.toString()) {
-    await doc.remove();
-  } else {
-    res.status(401).json({ error: 'Unauthorized' });
   }
   res.status(200).json(doc).end();
 };
 
 const updateById = async (req, res) => {
   const { id } = req.params || {};
-  const doc = await Blog.findByIdAndUpdate(id.toString(), req.body, {
+  const doc = await User.findByIdAndUpdate(id.toString(), req.body, {
     new: true,
   });
+
   if (!doc) {
     res.status(404).json('Not found').end();
   }

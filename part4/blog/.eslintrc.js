@@ -3,6 +3,7 @@ module.exports = {
     commonjs: true,
     es2021: true,
     node: true,
+    jest: true,
   },
   extends: 'eslint:recommended',
   parserOptions: {
@@ -10,7 +11,13 @@ module.exports = {
   },
   rules: {
     indent: ['error', 2],
-    quotes: ['error', 'single'],
+    quotes: [
+      'error',
+      'single',
+      {
+        allowTemplateLiterals: true,
+      },
+    ],
     semi: ['error', 'always'],
     eqeqeq: 'error',
     'no-trailing-spaces': 'error',
