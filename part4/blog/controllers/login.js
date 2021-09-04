@@ -1,6 +1,6 @@
 const User = require('../models/user');
 const jwt = require('jsonwebtoken');
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 const config = require('../utils/config');
 
 const login = async (req, res) => {
@@ -11,8 +11,7 @@ const login = async (req, res) => {
   const passwordCorrect =
     findUser === null
       ? false
-      : await bcrypt.compare(body.password, findUser.passwordHash);
-
+      : await bcrypt.compare(body.password, findUser.password);
   if (!(findUser && passwordCorrect)) {
     return res.status(401).json({
       error: 'invalid username or password',

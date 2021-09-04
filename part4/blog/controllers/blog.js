@@ -44,7 +44,7 @@ const updateById = async (req, res) => {
   const { id } = req.params || {};
   const doc = await Blog.findByIdAndUpdate(id.toString(), req.body, {
     new: true,
-  });
+  }).populate('user', '-blogs');
   if (!doc) {
     res.status(404).json('Not found').end();
   }
